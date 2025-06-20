@@ -239,6 +239,7 @@ class TranslationSystem {
             this.saveLanguage();
             document.body.style.opacity = '1';
             
+            // ✅ CERRAR MENÚ MÓVIL AL CAMBIAR IDIOMA
             if (this.navigationManager && this.navigationManager.isMenuOpen) {
                 setTimeout(() => {
                     this.navigationManager.closeMobileMenu();
