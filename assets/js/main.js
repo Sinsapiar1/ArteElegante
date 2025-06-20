@@ -1,5 +1,5 @@
 // ===================================
-// MAIN APPLICATION INITIALIZER
+// MAIN APPLICATION INITIALIZER - UPDATED
 // main.js
 // ===================================
 
@@ -20,6 +20,7 @@ class ArteEleganteApp {
             }
 
             await this.initializeModules();
+            this.connectModules();
             this.setupGlobalEvents();
             this.showPageReady();
             
@@ -60,6 +61,10 @@ class ArteEleganteApp {
         this.modules.forms.init();
 
         await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    connectModules() {
+        this.modules.translation.setNavigationManager(this.modules.navigation);
     }
 
     setupGlobalEvents() {
@@ -222,20 +227,16 @@ class ArteEleganteApp {
     }
 }
 
-// Create global app instance
 const app = new ArteEleganteApp();
 
-// Initialize when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => app.init());
 } else {
     app.init();
 }
 
-// Cleanup on page unload
 window.addEventListener('beforeunload', () => {
     app.destroy();
 });
 
-// Make app globally available for debugging
 window.ArteEleganteApp = app;

@@ -1,5 +1,5 @@
 // ===================================
-// NAVIGATION MODULE
+// NAVIGATION MODULE - FIXED
 // navigation.js
 // ===================================
 
@@ -19,6 +19,7 @@ class NavigationManager {
         this.setupSmoothScrolling();
         this.setupMobileMenu();
         this.setupActiveSection();
+        this.setupLanguageButtons();
         this.addActiveStyles();
     }
 
@@ -89,6 +90,37 @@ class NavigationManager {
                 }
             });
         });
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (this.isMenuOpen) {
+                    this.closeMobileMenu();
+                }
+            });
+        });
+    }
+
+    setupLanguageButtons() {
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('language-btn')) {
+                if (this.isMenuOpen) {
+                    setTimeout(() => {
+                        this.closeMobileMenu();
+                    }, 300);
+                }
+            }
+        });
+
+        const languageButtons = document.querySelectorAll('.language-btn');
+        languageButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (this.isMenuOpen) {
+                    setTimeout(() => {
+                        this.closeMobileMenu();
+                    }, 300);
+                }
+            });
+        });
     }
 
     scrollToElement(element) {
@@ -105,15 +137,17 @@ class NavigationManager {
     setupMobileMenu() {
         if (!this.hamburger || !this.navMenu) return;
 
-        this.hamburger.addEventListener('click', () => {
+        this.hamburger.addEventListener('click', (e) => {
+            e.stopPropagation();
             this.toggleMobileMenu();
         });
 
         document.addEventListener('click', (e) => {
-            if (this.isMenuOpen && 
-                !this.navMenu.contains(e.target) && 
-                !this.hamburger.contains(e.target)) {
-                this.closeMobileMenu();
+            if (this.isMenuOpen) {
+                if (!this.navMenu.contains(e.target) && 
+                    !this.hamburger.contains(e.target)) {
+                    this.closeMobileMenu();
+                }
             }
         });
 
@@ -126,6 +160,17 @@ class NavigationManager {
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768 && this.isMenuOpen) {
                 this.closeMobileMenu();
+            }
+        });
+
+        this.navMenu.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' || 
+                e.target.classList.contains('language-btn') ||
+                e.target.classList.contains('nav-link')) {
+                
+                setTimeout(() => {
+                    this.closeMobileMenu();
+                }, 150);
             }
         });
     }
@@ -146,36 +191,50 @@ class NavigationManager {
         document.body.style.overflow = 'hidden';
         
         this.navMenu.style.opacity = '0';
-        this.navMenu.style.transform = 'translateY(-20px)';
+        this.navMenu.style.transform = 'translateX(-100%)';
+        
+        this.navMenu.offsetHeight;
         
         setTimeout(() => {
             this.navMenu.style.opacity = '1';
-            this.navMenu.style.transform = 'translateY(0)';
+            this.navMenu.style.transform = 'translateX(0)';
         }, 10);
 
         this.animateHamburger(true);
+        document.body.classList.add('mobile-menu-open');
     }
 
     closeMobileMenu() {
+        if (!this.isMenuOpen) return;
+        
         this.isMenuOpen = false;
         this.hamburger.classList.remove('active');
         this.navMenu.classList.remove('active');
         
         document.body.style.overflow = '';
+        document.body.classList.remove('mobile-menu-open');
+        
         this.animateHamburger(false);
+        
+        setTimeout(() => {
+            this.navMenu.style.opacity = '';
+            this.navMenu.style.transform = '';
+        }, 300);
     }
 
     animateHamburger(isOpen) {
         const spans = this.hamburger.querySelectorAll('span');
         
-        if (isOpen) {
-            spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
-            spans[1].style.opacity = '0';
-            spans[2].style.transform = 'rotate(-45deg) translate(7px, -6px)';
-        } else {
-            spans[0].style.transform = 'none';
-            spans[1].style.opacity = '1';
-            spans[2].style.transform = 'none';
+        if (spans.length >= 3) {
+            if (isOpen) {
+                spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
+                spans[1].style.opacity = '0';
+                spans[2].style.transform = 'rotate(-45deg) translate(7px, -6px)';
+            } else {
+                spans[0].style.transform = 'none';
+                spans[1].style.opacity = '1';
+                spans[2].style.transform = 'none';
+            }
         }
     }
 
@@ -221,6 +280,9 @@ class NavigationManager {
         const target = document.getElementById(sectionId);
         if (target) {
             this.scrollToElement(target);
+            if (this.isMenuOpen) {
+                this.closeMobileMenu();
+            }
         }
     }
 
@@ -238,19 +300,20 @@ class NavigationManager {
             @media (max-width: 768px) {
                 .nav-menu {
                     position: fixed;
-                    top: 100%;
+                    top: 0;
                     left: 0;
                     width: 100%;
-                    height: calc(100vh - 100%);
+                    height: 100vh;
                     background: rgba(10, 10, 10, 0.98);
                     backdrop-filter: blur(20px);
                     flex-direction: column;
                     justify-content: center;
                     align-items: center;
-                    transition: all 0.3s ease;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     transform: translateX(-100%);
                     opacity: 0;
                     z-index: 999;
+                    padding-top: 80px;
                 }
                 
                 .nav-menu.active {
@@ -259,21 +322,75 @@ class NavigationManager {
                 }
                 
                 .nav-item {
-                    margin: 1rem 0;
+                    margin: 1.5rem 0;
+                    opacity: 0;
+                    animation: slideInFromLeft 0.3s ease forwards;
                 }
                 
+                .nav-menu.active .nav-item {
+                    opacity: 1;
+                }
+                
+                .nav-menu.active .nav-item:nth-child(1) { animation-delay: 0.1s; }
+                .nav-menu.active .nav-item:nth-child(2) { animation-delay: 0.15s; }
+                .nav-menu.active .nav-item:nth-child(3) { animation-delay: 0.2s; }
+                .nav-menu.active .nav-item:nth-child(4) { animation-delay: 0.25s; }
+                .nav-menu.active .nav-item:nth-child(5) { animation-delay: 0.3s; }
+                .nav-menu.active .nav-item:nth-child(6) { animation-delay: 0.35s; }
+                .nav-menu.active .nav-item:nth-child(7) { animation-delay: 0.4s; }
+                
                 .nav-link {
-                    font-size: 1.2rem;
-                    padding: 1rem;
+                    font-size: 1.3rem;
+                    padding: 1rem 2rem;
+                    color: var(--light-text);
+                    text-decoration: none;
+                    border-radius: 8px;
+                    transition: all 0.3s ease;
+                    display: block;
+                    text-align: center;
+                }
+                
+                .nav-link:hover {
+                    background: rgba(212, 175, 55, 0.1);
+                    color: var(--primary-gold);
+                    transform: translateX(10px);
+                }
+                
+                .language-selector {
+                    margin-top: 2rem;
+                    opacity: 0;
+                    animation: slideInFromLeft 0.3s ease forwards;
+                    animation-delay: 0.5s;
                 }
                 
                 .hamburger span {
-                    transition: all 0.3s ease;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                
+                body.mobile-menu-open {
+                    overflow: hidden !important;
+                }
+                
+                @keyframes slideInFromLeft {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-30px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
                 }
             }
         `;
         
         document.head.appendChild(style);
+    }
+
+    forceCloseMenu() {
+        if (this.isMenuOpen) {
+            this.closeMobileMenu();
+        }
     }
 
     safeInit() {

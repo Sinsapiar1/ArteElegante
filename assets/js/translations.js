@@ -1,11 +1,12 @@
 // ===================================
-// TRANSLATION SYSTEM MODULE
+// TRANSLATION SYSTEM MODULE - FIXED
 // translations.js
 // ===================================
 
 class TranslationSystem {
     constructor() {
         this.currentLanguage = 'es';
+        this.navigationManager = null;
         this.translations = {
             es: {
                 'nav.home': 'Inicio',
@@ -204,6 +205,10 @@ class TranslationSystem {
         this.loadSavedLanguage();
         this.translatePage();
     }
+
+    setNavigationManager(navigationManager) {
+        this.navigationManager = navigationManager;
+    }
     
     setupLanguageButtons() {
         const languageButtons = document.querySelectorAll('.language-btn');
@@ -233,6 +238,12 @@ class TranslationSystem {
             this.translatePage();
             this.saveLanguage();
             document.body.style.opacity = '1';
+            
+            if (this.navigationManager && this.navigationManager.isMenuOpen) {
+                setTimeout(() => {
+                    this.navigationManager.closeMobileMenu();
+                }, 100);
+            }
         }, 300);
     }
     
